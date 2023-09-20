@@ -21,7 +21,7 @@ np.est <- function(x, y, t, bw, type, kertype){
   return(mhat)
 }
 
-bw.circ.cv <- function(x, y, type = "ll", kertype = "liracine", lower = 0,upper = 1,tol = 1e-2){
+bw.circ.cv <- function(x, y, type = "ll", kertype = "liracine", lower = 0,upper = 1, tol = 1e-2){
   n <- length(y)
   cv <- function(bw){
           sum(sapply(1:n, function(i){ 1 - cos(y[i]-np.est(x[-i], y[-i], x[i], bw, type, kertype))}))
@@ -74,7 +74,7 @@ est.circ <- function(x, y, t, bw = NULL, type = "ll", kertype = "liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   if (is.null(bw)){
-	bw <- bw.circ.cv(x, y, type, kertype, lower = 0, upper = 1,tol = 1e-2)	
+	bw <- bw.circ.cv(x, y, type, kertype, lower = 0, upper = 1, tol = 1e-2)	
   }
   if (type == "lc") mhat <- np.est(x, y , t, bw, type = "lc", kertype)
   else mhat <- np.est(x, y, t, bw, type = "ll", kertype)
