@@ -29,11 +29,8 @@ np.est <- function(x,y,t,bw,type,kertype){
 bw.circ.cv <- function(x,y,type="ll",kertype="epanechnikov",lower=0,upper=2,tol=1e-2){
   n <- length(y)
   cv <- function(bw){
-    for (i in 1:n){
-      sapply(1:n,function(i){1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))}
-    }
-    return(sum(err))
-  }
+          sum(sapply(1:n,function(i){1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))}))
+    	}
   bw <- optimize(function(bw) cv(bw),interval = c(lower,upper),tol=tol)$minimum
   return(bw)
 }
