@@ -9,26 +9,24 @@ CV and bootstrap bandwidth selection in circular regression for euclidean and or
 ```{r,warning=F}
 
 #Bandwidth selection and circular regression estimation 
-np.est <- function(x1,x2,y,t,bw,type,kertype1,kertype2){
+np.est <- function(x1, x2, y, t, bw, type, kertype1, kertype2){
   n <- length(y)
-  m1 <- npreg(txdat=cbind(x1,x2),tydat=as.numeric(sin(y)),bws=bw, exdat=t, 
-            regtype = type, ckertype=kertype1,okertype=kertype2)
+  m1 <- npreg(txdat = cbind(x1,x2), tydat = as.numeric(sin(y)), bws = bw, exdat = t, regtype = type, ckertype = kertype1, okertype = kertype2)
   p1 <- fitted(m1)
-  m2 <- npreg(txdat=cbind(x1,x2),tydat=as.numeric(cos(y)),bws=bw, exdat=t, regtype = type, ckertype=kertype1,okertype=kertype2)
+  m2 <- npreg(txdat = cbind(x1,x2), tydat = as.numeric(cos(y)), bws = bw, exdat = t, regtype = type, ckertype = kertype1, okertype = kertype2)
   p2 <- fitted(m2)
   mhat <- atan2(p1,p2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   return(mhat)
 }
 
-bw.circ.cv <- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine"){
+bw.circ.cv <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kertype2 = "liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   grid <- cbind(runif(50,0,1),runif(50,0,1))
   cv <- function(bw){
-          sum(sapply(1:n, function(i)  { 
-            #mH(X(i),p)
-            1-cos(y[i]-np.est(x1[-i],x2[-i],y[-i],cbind(x1[i],x2[i]),bw,type,kertype1,kertype2))
+          sum(sapply(1:n, function(i)  {
+            1 - cos(y[i]-np.est(x1[-i], x2[-i], y[-i], cbind(x1[i],x2[i]), bw, type, kertype1, kertype2))
           }))
        }
   z <- numeric(dim(grid)[1])
@@ -36,28 +34,29 @@ bw.circ.cv <- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="lirac
   return(grid[which.min(z),])
 }
 
-bw.circ.boot <- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine", B=500){
+bw.circ.boot <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kertype2 = "liracine", B=500){
   n <- length(y)
   case_star <- numeric(B)
-  bw_boot <- matrix(0,nrow = B,ncol=2)
+  bw_boot <- matrix(0, nrow = B, ncol = 2)
   
   ##Step 1: Obtain the centered residuals
-  theta <- est.circ(x1,x2,y,cbind(x1,x2),type=type,kertype1=kertype1,kertype2=kertype2)
-  res <- y-theta$y
-  centered_res <- res-circ.mean(res)
+  theta <- est.circ(x1, x2, y, cbind(x1,x2), type = type, kertype1 = kertype1, kertype2 = kertype2)
+  res <- y - theta$y
+  #res is already defined as circular
+  centered_res <- res - mean(res)
   
   for(b in 1:B){
     ##Step 2: Obtain a bootstrap sample from the centered residuals
     boot_err <- sample(centered_res, size=n, replace = T)
     
     ##Step 3 & 4: Obtain a bootstrap resample 
-    est_boot <- theta$y+boot_err
+    est_boot <- theta$y + boot_err
     
     ##CASE bandwidth selection for the resample
-    bw <- bw.circ.case(x1,x2,est_boot,theta$y,type,kertype1,kertype2)
+    bw <- bw.circ.case(x1, x2, est_boot, theta$y, type, kertype1, kertype2)
 
     ##Save the error
-    case_star[b] <- 1/n * sum(1-cos(theta$y - est.circ(x1,x2,est_boot,cbind(x1,x2),bw,type,kertype1,kertype2)$y))
+    case_star[b] <- 1/n * sum(1-cos(theta$y - est.circ(x1, x2, est_boot, cbind(x1,x2), bw, type, kertype1, kertype2)$y))
 
     ##Save the bandwidth
     bw_boot[b,1] <- bw[1]
@@ -65,17 +64,17 @@ bw.circ.boot <- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="lir
   }
   ##Step 5: Define the bootstrap version of CASE
   #Take the bandwidth that minimizes globally this error
-  bw <- bw_boot[which.min(case_star),1:2]
+  bw <- bw_boot[which.min(case_star),]
   return(bw)
 }
 
 
-bw.circ.case <- function(x1,x2,y,trend,type="ll",kertype1="epanechnikov",kertype2="liracine"){
+bw.circ.case <- function(x1, x2, y, trend, type = "ll", kertype1 = "epanechnikov", kertype2 = "liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   grid <- cbind(runif(50,0,1),runif(50,0,1))
   case <- function(bw){
-	    sum(1-cos(trend-np.est(x1,x2,y,cbind(x1,x2),bw,type='lc',kertype1='epanechnikov',kertype2='liracine')))
+	    sum(1 - cos(trend-np.est(x1, x2, y, cbind(x1,x2), bw, type = 'lc', kertype1 = 'epanechnikov', kertype2 = 'liracine')))
   	  }
   z <- numeric(dim(grid)[1])
   for(i in 1:dim(grid)[1]){z[i] <- case(grid[i,])}
@@ -83,17 +82,17 @@ bw.circ.case <- function(x1,x2,y,trend,type="ll",kertype1="epanechnikov",kertype
 }
 
 
-est.circ <- function(x1,x2,y,t,bw=NULL,type="ll",kertype1="epanechnikov",kertype2="liracine"){
+est.circ <- function(x1, x2, y, t, bw = NULL,type = "ll", kertype1 = "epanechnikov", kertype2 = "liracine"){
   datax <- cbind(x1,x2)
   datay <- y
   datat <- t
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   if (is.null(bw)){
-	bw <- bw.circ.cv(x1,x2,y,type,kertype1,kertype2)	
+	bw <- bw.circ.cv(x1, x2, y, type, kertype1, kertype2)	
   }
-  if (type=="lc") mhat <- np.est(x1,x2,y,t,bw,type="lc",kertype1,kertype2)
-  else mhat <- np.est(x1,x2,y,t,bw,type,kertype1,kertype2)
+  if (type=="lc") mhat <- np.est(x1, x2, y, t, bw, type = "lc", kertype1, kertype2)
+  else mhat <- np.est(x1, x2, y, t, bw, type, kertype1, kertype2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   structure(list(datax = datax, datay = datay, datat=datat,  y = mhat, bw = bw, n = n))
 }
