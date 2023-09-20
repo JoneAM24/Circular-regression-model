@@ -13,9 +13,9 @@ CV and bootstrap bandwidth selection in circular regression for ordered discrete
 np.est <- function(x,y,t,bw,type,kertype){
   n <- length(y)
   m1 <- npreg(txdat=x,tydat=as.numeric(sin(y)),exdat=t,bws=bw,regtype=type,okertype=kertype)
-  p1 <- fitted(r1)
+  p1 <- fitted(m1)
   m2 <- npreg(txdat=x,tydat=as.numeric(cos(y)),exdat=t,bws=bw,regtype=type,okertype=kertype)
-  p2 <- fitted(r2)
+  p2 <- fitted(m2)
   mhat <- atan2(p1,p2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   return(mhat)
@@ -25,11 +25,8 @@ bw.circ.cv <- function(x,y,type="ll",kertype="liracine",lower=0,upper=1,tol=1e-2
   n <- length(y)
   err <- numeric(n)
   cv <- function(bw){
-    for (i in 1:n){
-      err[i] <- 1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))
-    }
-    return(sum(err))
-  }
+          sum(sapply(1:n, function(i){ 1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))}))
+         }
   bw <- optimize(function(bw) cv(bw),interval = c(lower,upper),tol=tol)$minimum
   
   return(bw)
@@ -75,16 +72,16 @@ est.circ <- function(x,y,t,bw=NULL,type="ll",kertype="liracine"){
   datax <- x
   datay <- y
   datat <- t
-  y <- conversion.circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
+  y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   if (is.null(bw)){
 	bw <- bw.circ.cv(x,y,type,kertype,lower=0,upper=1,tol=1e-2)	
   }
   if (type=="lc") mhat <- np.est(x,y,t,bw,type="lc",kertype)
   else mhat <- np.est(x,y,t,bw,type="ll",kertype)
-  mhat <-  conversion.circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
+  mhat <-  circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
 structure(list(datax = datax, datay = datay, datat=datat,  y = mhat, bw = bw, n = n))
 }
 
 ````
-We can derive the previous bandwidth selectiors for an unordered discrete predictor, just by defining the ukertype argument inside npreg with Aitchison kernels.
+We can develop the previous bandwidth selectiors when we have an unordered discrete predictor, just by defining the ukertype argument inside npreg with Aitchison kernels.
