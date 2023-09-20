@@ -1,8 +1,4 @@
----
-title: "Euclidean"
-output: html_document
-date: "2023-04-28"
----
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -10,9 +6,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r, warning=F, message=F}
-library(readr)
 library(circular)
-library(NPCirc)
 library(np)
 ```
 
@@ -21,82 +15,80 @@ CV and bootstrap bandwidth selection in circular regression for euclidean predic
 ```{r, warning=F}
 
 #Bandwidth selection and circular regression estimation 
-np.est<-function(x,y,t,bw,type,kertype){
+np.est <- function(x,y,t,bw,type,kertype){
   n <- length(y)
-  r1<-npreg(txdat=x,tydat=as.numeric(sin(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
-  p1<-fitted(r1)
-  r2<-npreg(txdat=x,tydat=as.numeric(cos(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
-  p2<-fitted(r2)
+  m1 <- npreg(txdat=x,tydat=as.numeric(sin(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
+  p1 <- fitted(m1)
+  r2 <- npreg(txdat=x,tydat=as.numeric(cos(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
+  p2 <- fitted(m2)
   mhat <- atan2(p1,p2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   return(mhat)
 }
 
-bw.circ.cv<- function(x,y,type="ll",kertype="epanechnikov",lower=0,upper=2,tol=1e-2){
-  n<-length(y)
-  err<-numeric(n)
-  cv<-function(bw){
+bw.circ.cv <- function(x,y,type="ll",kertype="epanechnikov",lower=0,upper=2,tol=1e-2){
+  n <- length(y)
+  cv <- function(bw){
     for (i in 1:n){
-      err[i]<-1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))
+      sapply(1:n,function(i){1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))}
     }
     return(sum(err))
   }
   bw <- optimize(function(bw) cv(bw),interval = c(lower,upper),tol=tol)$minimum
-  
   return(bw)
 }
 
-bw.circ.boot<-function(x,y,type="ll",kertype="epanechnikov", B=500){
-  n<-length(y)
-  case_star<-numeric(B)
-  bw_boot<-numeric(B)
+bw.circ.boot <- function(x,y,type="ll",kertype="epanechnikov", B=500){
+  n <- length(y)
+  case_star <- numeric(B)
+  bw_boot <- numeric(B)
   
   ##Step 1: Obtain the centered residuals
-  theta<-est.circ(x,y,x,type=type,kertype=kertype)
-  res<-y-theta$y
-  centered_res<-res-mean(res)
+  theta <- est.circ(x,y,x,type=type,kertype=kertype)
+  res <- y-theta$y
+  centered_res <- res-circ.mean(res)
   
   for(b in 1:B){
     ##Step 2: Obtain a bootstrap sample from the centered residuals
-    boot_err<-sample(centered_res, size=n, replace = T)
+    boot_err <- sample(centered_res, size=n, replace = T)
     
     ##Step 3 & 4: Obtain a bootstrap resample 
-    est_boot<-theta$y+boot_err
+    est_boot <- theta$y+boot_err
     
     ##CASE bandwidth selection for the resample
-    bw<-bw.circ.case(x,est_boot,theta$y,type,kertype)
+    bw <- bw.circ.case(x,est_boot,theta$y,type,kertype)
+
     ##Save the error
-    case_star[b]<-1/n * sum(1-cos(theta$y - est.circ(x,est_boot,x,bw,type,kertype)$y))
+    case_star[b] <- 1/n * sum(1-cos(theta$y - est.circ(x,est_boot,x,bw,type,kertype)$y))
+
     ##Save the bandwidth
-    bw_boot[b]<-bw
+    bw_boot[b] <- bw
   }
-  ##Step 5: Define the bootstrap version of CASE
-  #Take the bandwidth that minimizes globally this error
-  bw<-bw_boot[which.min(case_star)]
+  ##Step 5: Take the bandwidth that minimizes globally this error
+  bw <- bw_boot[which.min(case_star)]
   return(bw)
 }
 
-bw.circ.case<- function(x,y,trend,type="ll",kertype="epanechnikov",lower=0,upper=2,tol=1e-2){
+bw.circ.case <- function(x,y,trend,type="ll",kertype="epanechnikov",lower=0,upper=2,tol=1e-2){
   n<-length(y)
-  err<-numeric(n)
   case<-function(bw){sum(1-cos(trend-np.est(x,y,x,bw,type,kertype)))}
   bw <- optimize(function(bw) case(bw),interval = c(lower,upper),tol=tol)$minimum
   return(bw)
 }
 
-est.circ<-function(x,y,t,bw=NULL,type="ll",kertype="epanechnikov"){
+est.circ <- function(x,y,t,bw=NULL,type="ll",kertype="epanechnikov"){
   datax <- x
-	datay <- y
-	datat <- t
-	y <- conversion.circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
-	n <- length(y)
-	if (is.null(bw)){
-		bw <- bw.circ.cv(x,y,type,kertype,lower=0,upper=2,tol=1e-2)	
-	}
-	if (type=="lc") mhat <- np.est(x,y,t,bw,type="lc",kertype)
-	else mhat <- np.est(x,y,t,bw,type="ll",kertype)
-	mhat <-  conversion.circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
-structure(list(datax = datax, datay = datay, datat=datat,  y = mhat, bw = bw, n = n))
+  datay <- y
+  datat <- t
+  y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
+  n <- length(y)
+  if (is.null(bw)){
+	bw <- bw.circ.cv(x,y,type,kertype,lower=0,upper=2,tol=1e-2)	
+  }
+  if (type=="lc") {mhat <- np.est(x,y,t,bw,type="lc",kertype)}
+  else {mhat <- np.est(x,y,t,bw,type="ll",kertype)}
+  mhat <-  circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
+  structure(list(datax = datax, datay = datay, datat=datat,  y = mhat, bw = bw, n = n))
 }
 
 
