@@ -19,7 +19,7 @@ np.est <- function(x,y,t,bw,type,kertype){
   n <- length(y)
   m1 <- npreg(txdat=x,tydat=as.numeric(sin(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
   p1 <- fitted(m1)
-  r2 <- npreg(txdat=x,tydat=as.numeric(cos(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
+  m2 <- npreg(txdat=x,tydat=as.numeric(cos(y)),exdat=t,bws=bw,regtype=type,ckertype=kertype)
   p2 <- fitted(m2)
   mhat <- atan2(p1,p2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
@@ -43,7 +43,8 @@ bw.circ.boot <- function(x,y,type="ll",kertype="epanechnikov", B=500){
   ##Step 1: Obtain the centered residuals
   theta <- est.circ(x,y,x,type=type,kertype=kertype)
   res <- y-theta$y
-  centered_res <- res-circ.mean(res)
+  #res is already defined as circular
+  centered_res <- res-mean(res)
   
   for(b in 1:B){
     ##Step 2: Obtain a bootstrap sample from the centered residuals
