@@ -26,7 +26,7 @@ bw.circ.cv <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kertyp
   grid <- cbind(runif(50,0,1),runif(50,0,1))
   cv <- function(bw){
           sum(sapply(1:n, function(i)  {
-            1 - cos(y[i]-np.est(x1[-i], x2[-i], y[-i], cbind(x1[i],x2[i]), bw, type, kertype1, kertype2))
+            1 - cos(y[i] - np.est(x1[-i], x2[-i], y[-i], cbind(x1[i],x2[i]), bw, type, kertype1, kertype2))
           }))
        }
   z <- numeric(dim(grid)[1])
@@ -34,7 +34,7 @@ bw.circ.cv <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kertyp
   return(grid[which.min(z),])
 }
 
-bw.circ.boot <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kertype2 = "liracine", B=500){
+bw.circ.boot <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kertype2 = "liracine", B = 500){
   n <- length(y)
   case_star <- numeric(B)
   bw_boot <- matrix(0, nrow = B, ncol = 2)
@@ -47,7 +47,7 @@ bw.circ.boot <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kert
   
   for(b in 1:B){
     ##Step 2: Obtain a bootstrap sample from the centered residuals
-    boot_err <- sample(centered_res, size=n, replace = T)
+    boot_err <- sample(centered_res, size = n, replace = T)
     
     ##Step 3 & 4: Obtain a bootstrap resample 
     est_boot <- theta$y + boot_err
@@ -56,7 +56,7 @@ bw.circ.boot <- function(x1, x2, y, type = "ll", kertype1 = "epanechnikov", kert
     bw <- bw.circ.case(x1, x2, est_boot, theta$y, type, kertype1, kertype2)
 
     ##Save the error
-    case_star[b] <- 1/n * sum(1-cos(theta$y - est.circ(x1, x2, est_boot, cbind(x1,x2), bw, type, kertype1, kertype2)$y))
+    case_star[b] <- 1/n * sum(1 - cos(theta$y - est.circ(x1, x2, est_boot, cbind(x1,x2), bw, type, kertype1, kertype2)$y))
 
     ##Save the bandwidth
     bw_boot[b,1] <- bw[1]
@@ -74,7 +74,7 @@ bw.circ.case <- function(x1, x2, y, trend, type = "ll", kertype1 = "epanechnikov
   n <- length(y)
   grid <- cbind(runif(50,0,1),runif(50,0,1))
   case <- function(bw){
-	    sum(1 - cos(trend-np.est(x1, x2, y, cbind(x1,x2), bw, type = 'lc', kertype1 = 'epanechnikov', kertype2 = 'liracine')))
+	    sum(1 - cos(trend - np.est(x1, x2, y, cbind(x1,x2), bw, type = 'lc', kertype1 = 'epanechnikov', kertype2 = 'liracine')))
   	  }
   z <- numeric(dim(grid)[1])
   for(i in 1:dim(grid)[1]){z[i] <- case(grid[i,])}
