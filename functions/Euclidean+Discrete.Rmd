@@ -94,7 +94,7 @@ est.circ <- function(x1, x2, y, t, bw = NULL,type = "ll", kertype1 = "epanechnik
   if (type=="lc") mhat <- np.est(x1, x2, y, t, bw, type = "lc", kertype1, kertype2)
   else mhat <- np.est(x1, x2, y, t, bw, type, kertype1, kertype2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
-  structure(list(datax = datax, datay = datay, datat=datat,  y = mhat, bw = bw, n = n))
+  structure(list(datax = datax, datay = datay, datat = datat,  y = mhat, bw = bw, n = n))
 }
 ```
 
