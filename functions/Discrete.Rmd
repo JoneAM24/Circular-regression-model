@@ -77,9 +77,9 @@ est.circ <- function(x, y, t, bw = NULL, type = "ll", kertype = "liracine"){
 	bw <- bw.circ.cv(x, y, type, kertype, lower = 0, upper = 1, tol = 1e-2)	
   }
   if (type == "lc") mhat <- np.est(x, y , t, bw, type = "lc", kertype)
-  else mhat <- np.est(x, y, t, bw, type = "ll", kertype)
+  else mhat <- np.est(x, y, t, bw, type, kertype)
   mhat <-  circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
-structure(list(datax = datax, datay = datay, datat=datat,  y = mhat, bw = bw, n = n))
+structure(list(datax = datax, datay = datay, datat = datat,  y = mhat, bw = bw, n = n))
 }
 
 ````
