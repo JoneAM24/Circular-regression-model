@@ -9,11 +9,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, warning=F, message=F}
-library(readr)
 library(circular)
-library(NPCirc)
 library(np)
-library(ggplot2)
 ```
 
 CV and bootstrap bandwidth selection in circular regression for euclidean and ordered discrete predictor and circular response.
@@ -36,9 +33,9 @@ np.est<-function(x1,x2,y,t,bw,type,kertype1,kertype2){
 bw.circ.cv<- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n<-length(y)
-  grid<-cbind(runif(50,0,2),runif(50,0,1))
+  grid<-cbind(runif(50,0,1),runif(50,0,1))
   cv<-function(bw){
-    sum(sapply(seq(1,n,5), function(i)  { 
+    sum(sapply(1:n, function(i)  { :
       #mH(X,p)
       1-cos(y[i]-np.est(x1[-i],x2[-i],y[-i],cbind(x1[i],x2[i]),bw,type,kertype1,kertype2))
     }))
@@ -85,7 +82,7 @@ bw.circ.boot<-function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="lirac
 bw.circ.case<- function(x1,x2,y,trend,type="ll",kertype1="epanechnikov",kertype2="liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n<-length(y)
-  grid<-cbind(runif(50,0,2),runif(50,0,1))
+  grid<-cbind(runif(50,0,1),runif(50,0,1))
   case<-function(bw){
     sum(1-cos(trend-np.est(x1,x2,y,cbind(x1,x2),bw,type='lc',kertype1='epanechnikov',kertype2='liracine')))
   }
