@@ -9,7 +9,7 @@ CV and bootstrap bandwidth selection in circular regression for euclidean and or
 ```{r,warning=F}
 
 #Bandwidth selection and circular regression estimation 
-np.est<-function(x1,x2,y,t,bw,type,kertype1,kertype2){
+np.est <- function(x1,x2,y,t,bw,type,kertype1,kertype2){
   n <- length(y)
   m1 <- npreg(txdat=cbind(x1,x2),tydat=as.numeric(sin(y)),bws=bw, exdat=t, 
             regtype = type, ckertype=kertype1,okertype=kertype2)
@@ -21,7 +21,7 @@ np.est<-function(x1,x2,y,t,bw,type,kertype1,kertype2){
   return(mhat)
 }
 
-bw.circ.cv<- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine"){
+bw.circ.cv <- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   grid <- cbind(runif(50,0,1),runif(50,0,1))
@@ -36,7 +36,7 @@ bw.circ.cv<- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liraci
   return(grid[which.min(z),])
 }
 
-bw.circ.boot<-function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine", B=500){
+bw.circ.boot <- function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="liracine", B=500){
   n <- length(y)
   case_star <- numeric(B)
   bw_boot <- matrix(0,nrow = B,ncol=2)
@@ -70,7 +70,7 @@ bw.circ.boot<-function(x1,x2,y,type="ll",kertype1="epanechnikov",kertype2="lirac
 }
 
 
-bw.circ.case<- function(x1,x2,y,trend,type="ll",kertype1="epanechnikov",kertype2="liracine"){
+bw.circ.case <- function(x1,x2,y,trend,type="ll",kertype1="epanechnikov",kertype2="liracine"){
   y <- circular(y, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   n <- length(y)
   grid <- cbind(runif(50,0,1),runif(50,0,1))
@@ -83,7 +83,7 @@ bw.circ.case<- function(x1,x2,y,trend,type="ll",kertype1="epanechnikov",kertype2
 }
 
 
-est.circ<-function(x1,x2,y,t,bw=NULL,type="ll",kertype1="epanechnikov",kertype2="liracine"){
+est.circ <- function(x1,x2,y,t,bw=NULL,type="ll",kertype1="epanechnikov",kertype2="liracine"){
   datax <- cbind(x1,x2)
   datay <- y
   datat <- t
