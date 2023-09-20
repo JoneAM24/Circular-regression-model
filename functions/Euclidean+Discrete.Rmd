@@ -13,9 +13,9 @@ np.est <- function(x1,x2,y,t,bw,type,kertype1,kertype2){
   n <- length(y)
   m1 <- npreg(txdat=cbind(x1,x2),tydat=as.numeric(sin(y)),bws=bw, exdat=t, 
             regtype = type, ckertype=kertype1,okertype=kertype2)
-  p1 <- fitted(r1)
+  p1 <- fitted(m1)
   m2 <- npreg(txdat=cbind(x1,x2),tydat=as.numeric(cos(y)),bws=bw, exdat=t, regtype = type, ckertype=kertype1,okertype=kertype2)
-  p2 <- fitted(r2)
+  p2 <- fitted(m2)
   mhat <- atan2(p1,p2)
   mhat <- circular(mhat, units = "radians", zero = 0, rotation = "counter", modulo = "2pi")
   return(mhat)
