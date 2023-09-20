@@ -23,12 +23,10 @@ np.est <- function(x,y,t,bw,type,kertype){
 
 bw.circ.cv <- function(x,y,type="ll",kertype="liracine",lower=0,upper=1,tol=1e-2){
   n <- length(y)
-  err <- numeric(n)
   cv <- function(bw){
           sum(sapply(1:n, function(i){ 1-cos(y[i]-np.est(x[-i],y[-i],x[i],bw,type,kertype))}))
          }
   bw <- optimize(function(bw) cv(bw),interval = c(lower,upper),tol=tol)$minimum
-  
   return(bw)
 }
 
@@ -40,7 +38,8 @@ bw.circ.boot <- function(x,y,type="ll",kertype="liracine", B=500){
   ##Step 1: Obtain the centered residuals
   theta <- est.circ(x,y,x,type=type,kertype=kertype)
   res <- y-theta$y
-  centered_res <- res-circ.mean(res)
+  #res is already defined as circular
+  centered_res <- res-mean(res)
   
   for(b in 1:B){
     ##Step 2: Obtain a bootstrap sample from the centered residuals
